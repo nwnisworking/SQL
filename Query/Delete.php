@@ -1,25 +1,23 @@
 <?php
-namespace DB\Query;
-use DB\Element;
-use DB\Query;
+namespace SQL\Query;
+use SQL\Element;
+use SQL\Query;
 
 final class Delete extends Query{
-  private ?string $table = null;
-
-
   private Element $where;
 
   public function __construct(string $table){
+    $this->name = 'DELETE';
     $this->table = $table;
-    $this->changeDataType($this->data_type);
+    $this->changePlaceholder($this->placeholder_type);
   }
 
   /**
    * Change the type of placeholder used for prepare statement. 
    */
-  public function changeDataType(string $data_type){
-    parent::changeDataType($data_type);
-    $this->where = new Element($this->data_type === '?' ? Element::QN : Element::COLON);
+  public function changePlaceholder(string $data_type){
+    parent::changePlaceholder($data_type);
+    $this->where = new Element($this->placeholder_type === '?' ? Element::QUESTION : Element::COLON);
 
     return $this;
   }

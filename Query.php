@@ -1,12 +1,27 @@
 <?php
-namespace DB;
+namespace SQL;
 use ErrorException;
 
 abstract class Query{
   /**
-   * Type of data passed.
+   * The table for the column
    */
-  protected string $data_type = '?';
+  protected ?string $table = null;
+
+  /**
+   * The column-value or column only for select/insert/delete/update query. 
+   */
+  protected ?array $columns = null;
+
+  /**
+   * The name of the query that is being represented.
+   */
+  public string $name;
+
+  /**
+   * Type of data that will passed when building query.
+   */
+  protected string $placeholder_type = '?';
 
   /**
    * Data can either be an associative array or sequential array.
@@ -25,13 +40,13 @@ abstract class Query{
   protected ?Database $database;
 
   /**
-   * Change the data type when adding data
+   * Change the placeholder type when adding data
    */
-  public function changeDataType(string $data_type){
+  public function changePlaceholder(string $data_type){
     if(!in_array($data_type, ['?', ':']))
       throw new ErrorException('Data type is invalid');
 
-    $this->data_type = $data_type;
+    $this->placeholder_type = $data_type;
     return $this;
   }
 
@@ -46,7 +61,7 @@ abstract class Query{
   public function add(string $stmt, ?array $data = null){
     $this->stmt.= $stmt;
 
-    if($this->data_type === ':' && !is_null($data)){
+    if($this->placeholder_type === ':' && !is_null($data)){
       preg_match_all('/:[a-zA-Z0-9]+/', $stmt, $a);
       $a = $a[0];
       $b = array_keys($data);
@@ -57,7 +72,7 @@ abstract class Query{
       if(count($v = array_diff($a, $b)))
         throw new ErrorException(join(', ', array_unique($v)).' key missing from data');
     }
-    elseif($this->data_type === '?' && !is_null($data)){
+    elseif($this->placeholder_type === '?' && !is_null($data)){
       if(!array_is_list($data))
         throw new ErrorException('data is not a sequential array');
 
@@ -68,7 +83,7 @@ abstract class Query{
     $data = is_null($data) ? [] : $data;
 
     foreach($data as $k=>$v){
-      if($this->data_type === ':')
+      if($this->placeholder_type === ':')
         $this->data[$k] = $v;
       else
         $this->data[] = $v;
@@ -78,13 +93,26 @@ abstract class Query{
     return $this;
   }
 
+  /**
+   * Get the statement of the query and its data 
+   */
   public function getStatement(mixed &$data){
     $data = $this->data;
     return $this->stmt;
   }
 
+  /**
+   * Check whether if parameter value match the defined operators 
+   */
   public static function isCondition(string $op){
     return in_array($op, ['=', '<', '>', '<=', '>=', '<>', '!=', 'IN', 'BETWEEN']);
+  }
+
+  public function column(){
+    if($this->name === 'SELECT')
+      return array_values($this->columns);
+
+    return array_keys($this->columns);
   }
 
   public abstract function build();

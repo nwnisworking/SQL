@@ -1,5 +1,5 @@
 <?php
-namespace DB;
+namespace SQL;
 use ErrorException;
 
 class Element{
@@ -7,7 +7,7 @@ class Element{
 
   public const COLON = 1;
 
-  public const QN = 2;
+  public const QUESTION = 2;
   private array $elements = [];
 
   private array $data = [];

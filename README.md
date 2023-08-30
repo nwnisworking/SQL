@@ -1,1 +1,1 @@
-# SimplyQL
+# SQL

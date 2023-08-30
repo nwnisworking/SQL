@@ -1,27 +1,24 @@
 <?php
-namespace DB\Query;
-use DB\Element;
-use DB\Query;
+namespace SQL\Query;
+use SQL\Element;
+use SQL\Query;
 
 final class Update extends Query{
-  private ?string $table = null;
-
-  private ?array $columns = null;
-
   private Element $where;
 
   public function __construct(string $table, array $columns){
+    $this->name = 'UPDATE';
     $this->table = $table;
     $this->columns = $columns;
-    $this->changeDataType($this->data_type);
+    $this->changePlaceholder($this->placeholder_type);
   }
 
   /**
    * Change the type of placeholder used for prepare statement. 
    */
-  public function changeDataType(string $data_type){
-    parent::changeDataType($data_type);
-    $this->where = new Element($this->data_type === '?' ? Element::QN : Element::COLON);
+  public function changePlaceholder(string $data_type){
+    parent::changePlaceholder($data_type);
+    $this->where = new Element($this->placeholder_type === '?' ? Element::QUESTION : Element::COLON);
 
     return $this;
   }
@@ -41,8 +38,8 @@ final class Update extends Query{
 
     $this->add("UPDATE $this->table SET ");
     $this->add(
-      sprintf("%s", join(',', array_map(fn($e)=>$this->data_type === ':' ? "$e = :$e" : '$e = ?', $key))), 
-      $this->data_type === ':' ? array_combine(array_map(fn($e)=>":$e", $key), $value) : $value
+      sprintf("%s", join(',', array_map(fn($e)=>$this->placeholder_type === ':' ? "$e = :$e" : '$e = ?', $key))), 
+      $this->placeholder_type === ':' ? array_combine(array_map(fn($e)=>":$e", $key), $value) : $value
     );
 
     if($this->where->size()){

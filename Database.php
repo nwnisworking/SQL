@@ -1,9 +1,9 @@
 <?php
-namespace DB;
-use DB\Query\Delete;
-use DB\Query\Insert;
-use DB\Query\Select;
-use DB\Query\Update;
+namespace SQL;
+use SQL\Query\Delete;
+use SQL\Query\Insert;
+use SQL\Query\Select;
+use SQL\Query\Update;
 use ErrorException;
 use PDO;
 use PDOException;
@@ -93,11 +93,11 @@ class Database{
   /**
    * Fetch row as an associative array
    */
-  public function fetchAssoc(bool $fetch_all = null){
+  public function fetchAssoc(bool $fetch_all = false){
     return $this->fetch(PDO::FETCH_ASSOC, [], $fetch_all);
   }
 
-  public function fetchArray(bool $fetch_all = null){
+  public function fetchArray(bool $fetch_all = false){
     return $this->fetch(PDO::FETCH_NUM, [], $fetch_all);
   }
 

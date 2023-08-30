@@ -1,20 +1,10 @@
 <?php
-namespace DB\Query;
-use DB\Element;
-use DB\Query;
+namespace SQL\Query;
+use SQL\Element;
+use SQL\Query;
 use ErrorException;
 
 final class Select extends Query{
-  /**
-   * The selected table of the database
-   */
-  private ?string $table = null;
-
-  /**
-   *  The selected column used to select data
-   */
-  private ?array $columns = null;
-
   /**
    * Combine rows from table based on column relation
    */
@@ -50,27 +40,23 @@ final class Select extends Query{
    */
   private ?int $limit;
 
-  /**
-   * Name of query type
-   */
-  public string $name = 'SELECT';
-
   public function __construct(string $table, array $columns = ['*'], array $data = []){
     if(!array_is_list($columns))
       throw new ErrorException('Column requires a sequential array');
 
+    $this->name = 'SELECT';
     $this->table = $table;
     $this->columns = $columns;
-    $this->changeDataType($this->data_type);
+    $this->changePlaceholder($this->placeholder_type);
     array_push($this->data, ...$data);
   }
 
   /**
    * Change the type of placeholder used for prepare statement. 
    */
-  public function changeDataType(string $data_type){
-    parent::changeDataType($data_type);
-    $type = $this->data_type === '?' ? Element::QN : Element::COLON;
+  public function changePlaceholder(string $data_type){
+    parent::changePlaceholder($data_type);
+    $type = $this->placeholder_type === '?' ? Element::QUESTION : Element::COLON;
     $this->where = new Element($type);
     $this->having = new Element($type);
     $this->group = new Element(Element::RAW_VALUE);
@@ -102,25 +88,25 @@ final class Select extends Query{
    * Join table that have matching values in both tables
    */
   public function innerJoin(string $table, string $column, string $op, mixed $value, string $glue = 'AND'){
-    $this->join('INNER', $table, $column, $op, $value, $glue);
+    return $this->join('INNER', $table, $column, $op, $value, $glue);
   }
 
   public function outerJoin(string $table, string $column, string $op, mixed $value, string $glue = 'AND'){
-    $this->join('OUTER', $table, $column, $op, $value, $glue);
+    return $this->join('OUTER', $table, $column, $op, $value, $glue);
   }
 
   /**
    * Join and return all records from the first table and any matching records from the right table
    */
   public function leftJoin(string $table, string $column, string $op, mixed $value, string $glue = 'AND'){
-    $this->join('LEFT', $table, $column, $op, $value, $glue);
+    return $this->join('LEFT', $table, $column, $op, $value, $glue);
   }
 
   /**
    * Join and return all records from the right table and any matching records from the left table
    */
   public function rightJoin(string $table, string $column, string $op, mixed $value, string $glue = 'AND'){
-    $this->join('RIGHT', $table, $column, $op, $value, $glue);
+    return $this->join('RIGHT', $table, $column, $op, $value, $glue);
   }
 
   /**
@@ -212,7 +198,7 @@ final class Select extends Query{
     $this->add(sprintf('SELECT %s FROM %s ', join(',', $this->columns), $this->table));
     if(count($this->join))
       foreach($this->join as $k=>$v)
-        $this->add("$v[type] JOIN $k ON $v[conditions]");
+        $this->add("$v[type] JOIN $k ON $v[conditions] ");
 
     if($this->where->size()){
       $this->add(' WHERE '.$this->where, $this->where->data());
